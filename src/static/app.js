@@ -25,6 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <div class="participants">
+            <h5>Participants:</h5>
+            <ul>
+              ${details.participants.map(participant => `<li>${participant}</li>`).join('')}
+            </ul>
+          </div>
         `;
 
         activitiesList.appendChild(activityCard);
@@ -84,3 +90,44 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize app
   fetchActivities();
 });
+
+async function loadActivities() {
+  try {
+    const response = await fetch('/activities');
+    if (!response.ok) {
+      throw new Error('Failed to fetch activities');
+    }
+
+    const activities = await response.json();
+    const activitiesList = document.getElementById('activities-list');
+    activitiesList.innerHTML = '';
+
+    for (const [name, details] of Object.entries(activities)) {
+      const activityCard = document.createElement('div');
+      activityCard.className = 'activity-card';
+
+      activityCard.innerHTML = `
+        <h4>${name}</h4>
+        <p>${details.description}</p>
+        <p><strong>Schedule:</strong> ${details.schedule}</p>
+        <div class="participants">
+          <h5>Participants:</h5>
+          <ul>
+            ${details.participants.length > 0 
+              ? details.participants.map(participant => `<li>${participant}</li>`).join('') 
+              : '<li>No participants yet</li>'}
+          </ul>
+        </div>
+      `;
+
+      activitiesList.appendChild(activityCard);
+    }
+  } catch (error) {
+    console.error('Error loading activities:', error);
+    const activitiesList = document.getElementById('activities-list');
+    activitiesList.innerHTML = '<p class="error">Failed to load activities. Please try again later.</p>';
+  }
+}
+
+// Call the function to load activities on page load
+loadActivities();
